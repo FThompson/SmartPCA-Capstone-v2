@@ -6,8 +6,8 @@ https://learn.adafruit.com/adafruits-raspberry-pi-lesson-10-stepper-motors
 
 """
 
+import pigpio
 from util.time import millis
-import RPi.GPIO as GPIO  # pylint: disable=import-error
 
 class Stepper:
     # four-wire step signal sequence
@@ -18,21 +18,22 @@ class Stepper:
         (1, 0, 0, 1)
     )
 
-    def __init__(self, n_steps, pin_a1, pin_a2, pin_b1, pin_b2, rpm=25):
+    def __init__(self, gpio, n_steps, pin_a1, pin_a2, pin_b1, pin_b2, rpm=25):
+        self.gpio = gpio
         self.n_steps = n_steps
         self.current_step = 0
         self.target_step = 0
         self.direction = 0
         self.last_step_time = 0
-        self.set_speed(rpm)
         self.pin_a1 = pin_a1
         self.pin_a2 = pin_a2
         self.pin_b1 = pin_b1
         self.pin_b2 = pin_b2
-        GPIO.setup(pin_a1, GPIO.OUT)
-        GPIO.setup(pin_a2, GPIO.OUT)
-        GPIO.setup(pin_b1, GPIO.OUT)
-        GPIO.setup(pin_b2, GPIO.OUT)
+        self.set_speed(rpm)
+        gpio.set_mode(pin_a1, pigpio.OUTPUT)
+        gpio.set_mode(pin_a2, pigpio.OUTPUT)
+        gpio.set_mode(pin_b1, pigpio.OUTPUT)
+        gpio.set_mode(pin_b2, pigpio.OUTPUT)
 
     def set_speed(self, rpm):
         self.rpm = rpm
@@ -49,10 +50,10 @@ class Stepper:
             self.direction = (1 if steps > 0 else -1)
 
     def send_signal(self, a1, a2, b1, b2):
-        GPIO.output(self.pin_a1, a1)
-        GPIO.output(self.pin_a2, a2)
-        GPIO.output(self.pin_b1, b1)
-        GPIO.output(self.pin_b2, b2)
+        self.gpio.write(self.pin_a1, a1)
+        self.gpio.write(self.pin_a2, a2)
+        self.gpio.write(self.pin_b1, b1)
+        self.gpio.write(self.pin_b2, b2)
 
     def is_stepping(self):
         return self.current_step != self.target_step
@@ -70,27 +71,27 @@ class Stepper:
                     if self.current_step == 0:
                         self.current_step = self.n_steps
                     self.current_step -= 1
-                signal_index = self.current_step % 4
-                self.send_signal(*Stepper.STEP_SIGNALS[signal_index])
+                signal = Stepper.STEP_SIGNALS[self.current_step % 4]
+                self.send_signal(*signal)
 
 def main():
-    coil_pin_a1 = 7
-    coil_pin_a2 = 11
-    coil_pin_b1 = 16
-    coil_pin_b2 = 18
-    GPIO.setmode(GPIO.BOARD)
-    stepper = Stepper(512, coil_pin_a1, coil_pin_a2, coil_pin_b1, coil_pin_b2)
+    coil_pin_a1 = 4
+    coil_pin_a2 = 17
+    coil_pin_b1 = 23
+    coil_pin_b2 = 24
+    gpio = pigpio.pi()
+    stepper = Stepper(gpio, 512, coil_pin_a1, coil_pin_a2, coil_pin_b1, coil_pin_b2)
     try:
         while True:
             if stepper.is_stepping():
                 stepper.update()
             else:
-                new_rpm = int(input("RPM?\n"))
+                new_rpm = int(input('RPM?\n'))
                 stepper.set_speed(new_rpm)
-                number_of_steps = int(input("Set to what step?\n"))
-                stepper.set_step(number_of_steps, True)
+                number_of_steps = int(input('How many steps?\n'))
+                stepper.step(number_of_steps)
     finally:
-        GPIO.cleanup()
+        gpio.stop()
 
 if __name__ == '__main__':
     main()
