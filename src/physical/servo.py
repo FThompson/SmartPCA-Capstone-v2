@@ -1,4 +1,3 @@
-from time import sleep
 import pigpio
 from util.time import millis
 
