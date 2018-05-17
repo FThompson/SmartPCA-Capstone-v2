@@ -28,7 +28,6 @@ class Servo():
         pulse_range = self.max_pulse - self.min_pulse
         pulse_width = self.min_pulse + angle * pulse_range / self.angle_range
         self.gpio.set_servo_pulsewidth(self.pin, pulse_width)
-        print('setting angle {} with pw {}'.format(angle, pulse_width))
 
     # idea: callback for what to do once sweep complete (i.e. sweep other direction)
     def sweep_angle(self, angle):
@@ -73,10 +72,6 @@ def main():
                     servo.sweep_angle(angle)
     finally:
         gpio.stop()
-
-def get_duty_cycle(angle):
-    return (1 + angle / 180) / 20
-
 
 if __name__ == '__main__':
     main()
