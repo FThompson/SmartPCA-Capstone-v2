@@ -23,7 +23,7 @@ class Servo():
     def set_angle(self, angle):
         if angle < 0 or angle > self.angle_range:
             raise ValueError('angle out of range')
-        self.angle = angle
+        self.angle = self.target_angle = angle
         pulse_range = self.max_pulse - self.min_pulse
         pulse_width = self.min_pulse + angle * pulse_range / self.angle_range
         self.gpio.set_servo_pulsewidth(self.pin, pulse_width)
@@ -68,7 +68,7 @@ def main():
                 else:
                     servo.set_speed(new_rpm)
                     angle = int(input('What angle?\n'))
-                    servo.sweep_angle(angle)
+                    servo.set_angle(angle)
     finally:
         gpio.stop()
 
