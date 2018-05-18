@@ -10,8 +10,9 @@ from physical.servo import Servo
 from physical.stepper import Stepper
 from ui.colors import Color
 from ui.scene import Scene
-from ui.scenes.home import HelloLabel
+from ui.scenes.home import *
 
+# note: font positions seem to fit best about 12px below as planned in figma
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
 
@@ -70,7 +71,9 @@ class Device:
     def setup_scenes(self):
         self.scenes = {
             State.HOME: Scene([
-                HelloLabel()
+                HelloLabel(),
+                DoseInfo(self.left_prescription, Color.RIIT_BLUE.value, 34),
+                DoseInfo(self.right_prescription, Color.RIIT_PURPLE.value, 255),
             ]),
             State.PAIN_QUESTION: None,
             State.REQUEST_DOSE: None,

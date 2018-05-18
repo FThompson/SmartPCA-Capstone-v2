@@ -32,6 +32,9 @@ class Component(ABC):
     def repaint(self):
         self.repainting = True
 
+    def bounds(self):
+        return (self.x, self.y, self.w, self.h)
+
     def contains(self, x, y):
         return x >= self.x and x <= self.x + self.w and y >= self.y and y <= self.y + self.h
 
