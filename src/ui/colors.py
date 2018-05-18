@@ -8,3 +8,5 @@ class Color(Enum):
     RIIT_GREEN = (111, 207, 151)
     RIIT_GRAY = (189, 189, 189)
     RIIT_LIGHT_GRAY = (224, 224, 224)
+    RIIT_DARK_GRAY = (130, 130, 130)
+    RIIT_DARKER_GRAY = (79, 79, 79)

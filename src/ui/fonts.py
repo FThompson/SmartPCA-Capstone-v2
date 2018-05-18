@@ -17,5 +17,6 @@ def get_font(font_type, size):
 
 # takes text surface returned by Font.render
 # returns rectangle to be passed to screen.blit with text surface
-def center(text, x, y, w, h):
+# pass 0 to width for only-vertical centering, 0 to height for only-horizontal centering
+def center(text, x, y, w=0, h=0):
     return text.get_rect(center=(x + w / 2, y + h / 2))

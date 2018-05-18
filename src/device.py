@@ -4,11 +4,13 @@ from enum import Enum
 import pigpio
 import pygame
 
+from prescription import Prescription
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
-import ui.fonts as fonts
 from ui.colors import Color
+from ui.scene import Scene
+from ui.scenes.home import HelloLabel
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -31,7 +33,6 @@ class State(Enum):
     CONTACT = 10
 
 class Device:
-
     def __init__(self):
         print('Initializing pigpio... ')
         self.gpio = pigpio.pi()
@@ -43,6 +44,9 @@ class Device:
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
         self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS)
+        self.left_prescription = Prescription('Opioids', 3, 1 * 10 * 60 * 1000, True)
+        self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
+        self.selected_prescription = None
         self.setup_scenes()
         self.set_state(State.HOME)
         self.running = True
@@ -60,18 +64,14 @@ class Device:
         pygame.event.set_allowed(EVENT_TYPES)
         pygame.mouse.set_visible(False)
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
-        self.screen.fill(Color.RIIT_BLUE.value)
-        pygame.draw.rect(self.screen, Color.RIIT_GREEN.value, (5, 5, 470, 310), 4)
-        font = fonts.get_font(fonts.FontType.ROBOTO_MEDIUM.value, 48)
-        text = font.render("Centered text test", True, (0, 0, 0))
-        centered_rect = fonts.center(text, 0, 0, SCREEN_SIZE[0], SCREEN_SIZE[1])
-        pygame.draw.rect(self.screen, (0, 0, 0), centered_rect, 2)
-        self.screen.blit(text, centered_rect)
+        self.screen.fill(Color.WHITE.value)
         pygame.display.update()
 
     def setup_scenes(self):
         self.scenes = {
-            State.HOME: None,
+            State.HOME: Scene([
+                HelloLabel()
+            ]),
             State.PAIN_QUESTION: None,
             State.REQUEST_DOSE: None,
             State.DISPENSING: None,
@@ -96,7 +96,7 @@ class Device:
         # pygame.draw.circle(self.screen, Color.RIIT_PURPLE.value, pygame.mouse.get_pos(), 10, 3)
         self.servo.update()
         self.stepper.update()
-        # self.scene.update()
+        self.scene.update(self.screen)
         pygame.display.update()
         # event_queue = pygame.event.get()
         # [e.pos for e in event_queue]

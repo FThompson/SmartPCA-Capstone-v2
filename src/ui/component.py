@@ -6,13 +6,10 @@ class Component(ABC):
         self.y = y
         self.w = w
         self.h = h
+        self.repainting = True
 
     @abstractmethod
-    def get_valid_states(self):
-        pass
-
-    @abstractmethod
-    def on_paint(self):
+    def on_repaint(self, screen):
         pass
 
     @abstractmethod
@@ -22,6 +19,18 @@ class Component(ABC):
     @abstractmethod
     def on_click(self, x, y):
         pass
+
+    def paint(self, screen):
+        if self.needs_repaint():
+            self.on_repaint(screen)
+            self.repainting = False
+
+    # custom components can override if needing more frequent repaint
+    def needs_repaint(self):
+        return self.repainting
+
+    def repaint(self):
+        self.repainting = True
 
     def contains(self, x, y):
         return x >= self.x and x <= self.x + self.w and y >= self.y and y <= self.y + self.h
