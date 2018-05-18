@@ -17,11 +17,11 @@ class Component(ABC):
         pass
 
     @abstractmethod
-    def on_press(self):
+    def on_press(self, x, y):
         pass
 
     @abstractmethod
-    def on_click(self):
+    def on_click(self, x, y):
         pass
 
     def contains(self, x, y):
@@ -44,12 +44,12 @@ class ComponentHandler():
         event_queue = pygame.event.get()
         mouse_events = [e for e in event_queue if e.type != pygame.QUIT]
         for e in mouse_events:
-            print('mouse event type {} at {},{}'.format(e.type, e.pos.x, e.pos.y))
+            print('mouse event type {} at {},{}'.format(e.type, e.pos[0], e.pos[1]))
         for component in self.components:
             if state in component.get_valid_states():
                 component.paint()
                 for event in mouse_events:
-                    if component.contains(event.pos.x, event.pos.y):
+                    if component.contains(event.pos[0], event.pos[1]):
                         if event.type == pygame.MOUSEBUTTONDOWN:
                             component.on_press()
                         elif event.type == pygame.MOUSEBUTTONUP:
