@@ -21,6 +21,6 @@ class Scene():
                 x, y = event.pos
                 if component.contains(x, y):
                     if event.type == pygame.MOUSEBUTTONDOWN:
-                        component.on_press()
+                        component.on_press(x, y)
                     elif event.type == pygame.MOUSEBUTTONUP:
-                        component.on_click()
+                        component.on_click(x, y)

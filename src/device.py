@@ -1,12 +1,14 @@
 import os
+from enum import Enum
+
 import pigpio
 import pygame
-from states import State
+
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
+import ui.fonts as fonts
 from ui.colors import Color
-from ui.component import ComponentHandler
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -16,7 +18,20 @@ BACKLIGHT_PIN = 18
 SERVO_PIN = 2
 STEPPER_PINS = (4, 17, 27, 22)
 
+class State(Enum):
+    HOME = 1
+    PAIN_QUESTION = 2
+    REQUEST_DOSE = 3
+    DISPENSING = 4
+    OVERRIDE_DOSE = 5
+    OVERRIDE_REASON = 6
+    MENU = 7
+    SETTINGS = 8
+    PRESCRIPTION = 9
+    CONTACT = 10
+
 class Device:
+
     def __init__(self):
         print('Initializing pigpio... ')
         self.gpio = pigpio.pi()
@@ -25,11 +40,11 @@ class Device:
         self.setup_pygame()
         print('Done.')
         print('Initializing components... ')
-        self.state = State.HOME
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
         self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS)
-        self.component_handler = ComponentHandler()
+        self.setup_scenes()
+        self.set_state(State.HOME)
         self.running = True
         print('Done.')
 
@@ -42,15 +57,31 @@ class Device:
         os.putenv('SDL_MOUSEDRV', 'TSLIB')
         os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
         pygame.init()
-        myfont = pygame.font.SysFont('Comic Sans MS', 40)
         pygame.event.set_allowed(EVENT_TYPES)
+        pygame.mouse.set_visible(False)
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.screen.fill(Color.RIIT_BLUE.value)
         pygame.draw.rect(self.screen, Color.RIIT_GREEN.value, (5, 5, 470, 310), 4)
-        textsurface = myfont.render('Some Text hello world', False, (0, 0, 0))
-        self.screen.blit(textsurface,(0,0))
-        pygame.mouse.set_visible(False)
+        font = fonts.get_font(fonts.FontType.ROBOTO_MEDIUM.value, 48)
+        text = font.render("Centered text test", True, (0, 0, 0))
+        centered_rect = fonts.center(text, 0, 0, SCREEN_SIZE[0], SCREEN_SIZE[1])
+        pygame.draw.rect(self.screen, (0, 0, 0), centered_rect, 2)
+        self.screen.blit(text, centered_rect)
         pygame.display.update()
+
+    def setup_scenes(self):
+        self.scenes = {
+            State.HOME: None,
+            State.PAIN_QUESTION: None,
+            State.REQUEST_DOSE: None,
+            State.DISPENSING: None,
+            State.OVERRIDE_DOSE: None,
+            State.OVERRIDE_REASON: None,
+            State.MENU: None,
+            State.SETTINGS: None,
+            State.PRESCRIPTION: None,
+            State.CONTACT: None
+        }
 
     def run(self):
         print('Running.\n')
@@ -58,16 +89,22 @@ class Device:
             while self.running:
                 self.update()
         except KeyboardInterrupt:
-            print('Quit requested via keyboard interrupt')
+            print('\nQuit requested via keyboard interrupt')
             self.running = False
 
     def update(self):
-        pygame.draw.circle(self.screen, Color.RIIT_PURPLE.value, pygame.mouse.get_pos(), 10, 3)
-        pygame.display.update()
+        # pygame.draw.circle(self.screen, Color.RIIT_PURPLE.value, pygame.mouse.get_pos(), 10, 3)
         self.servo.update()
         self.stepper.update()
-        self.component_handler.update(self.state)
+        # self.scene.update()
+        pygame.display.update()
+        # event_queue = pygame.event.get()
+        # [e.pos for e in event_queue]
 
+    def set_state(self, state):
+        self.scene = self.scenes.get(state)
+
+    # brightness [0.0, 1.0]
     def set_backlight(self, brightness):
         self.backlight.set_brightness(brightness)
 
