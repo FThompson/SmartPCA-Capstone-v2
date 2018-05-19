@@ -1,4 +1,5 @@
 import pygame
+from ui.colors import Color
 
 class Scene():
     def __init__(self, components=None):
@@ -9,9 +10,9 @@ class Scene():
 
     def update(self, screen):
         event_queue = pygame.event.get()
-        # for e in event_queue:
-        #     print('mouse event type {} at {},{}'.format(e.type, e.pos[0], e.pos[1]))
         for component in self.components:
+            # if device.get_device().state_changed:
+            #     break
             component.paint(screen)
             for event in event_queue:
                 x, y = event.pos
@@ -20,3 +21,7 @@ class Scene():
                         component.on_press(x, y)
                     elif event.type == pygame.MOUSEBUTTONUP:
                         component.on_click(x, y)
+
+    def clear(self, screen):
+        for component in self.components:
+            pygame.draw.rect(screen, Color.WHITE.value, component.bounds())

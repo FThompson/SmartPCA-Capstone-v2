@@ -1,18 +1,18 @@
 import os
-from enum import Enum
 
 import pigpio
 import pygame
 
-from prescription import Prescription
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
+from prescription import Prescription
+from states import State
 from ui.colors import Color
 from ui.scene import Scene
-from ui.scenes.home import *
+from ui.scenes.home import HelloLabel, DoseInfo
+from ui.scenes.pain_question import PainQuestion, FaceOption
 
-# note: font positions seem to fit best about 12px below as planned in figma
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
 
@@ -20,18 +20,6 @@ EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
 BACKLIGHT_PIN = 18
 SERVO_PIN = 2
 STEPPER_PINS = (4, 17, 27, 22)
-
-class State(Enum):
-    HOME = 1
-    PAIN_QUESTION = 2
-    REQUEST_DOSE = 3
-    DISPENSING = 4
-    OVERRIDE_DOSE = 5
-    OVERRIDE_REASON = 6
-    MENU = 7
-    SETTINGS = 8
-    PRESCRIPTION = 9
-    CONTACT = 10
 
 class Device:
     def __init__(self):
@@ -49,7 +37,8 @@ class Device:
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
         self.setup_scenes()
-        self.set_state(State.HOME)
+        self.scene = self.scenes.get(State.HOME)
+        self.state_changed = False
         self.running = True
         print('Done.')
 
@@ -64,7 +53,7 @@ class Device:
         pygame.init()
         pygame.event.set_allowed(EVENT_TYPES)
         pygame.mouse.set_visible(False)
-        self.screen = pygame.display.set_mode(SCREEN_SIZE)
+        self.screen = pygame.display.set_mode(SCREEN_SIZE, 0, 16)
         self.screen.fill(Color.WHITE.value)
         pygame.display.update()
 
@@ -72,10 +61,16 @@ class Device:
         self.scenes = {
             State.HOME: Scene([
                 HelloLabel(),
-                DoseInfo(self.left_prescription, Color.RIIT_BLUE.value, 34),
-                DoseInfo(self.right_prescription, Color.RIIT_PURPLE.value, 255),
+                DoseInfo(self, self.left_prescription, Color.RIIT_BLUE.value, 34),
+                DoseInfo(self, self.right_prescription, Color.RIIT_PURPLE.value, 255),
             ]),
-            State.PAIN_QUESTION: None,
+            State.PAIN_QUESTION: Scene([
+                PainQuestion(self),
+                FaceOption(self, 1, 1),
+                FaceOption(self, 2, 121),
+                FaceOption(self, 3, 241),
+                FaceOption(self, 4, 361)
+            ]),
             State.REQUEST_DOSE: None,
             State.DISPENSING: None,
             State.OVERRIDE_DOSE: None,
@@ -96,24 +91,25 @@ class Device:
             self.running = False
 
     def update(self):
-        # pygame.draw.circle(self.screen, Color.RIIT_PURPLE.value, pygame.mouse.get_pos(), 10, 3)
         self.servo.update()
         self.stepper.update()
         self.scene.update(self.screen)
+        pygame.display.flip()
         pygame.display.update()
-        # event_queue = pygame.event.get()
-        # [e.pos for e in event_queue]
+        self.state_changed = False
 
     def set_state(self, state):
+        self.scene.clear(self.screen)
         self.scene = self.scenes.get(state)
+        self.state_changed = True  # break draw cycle if state changed
 
     # brightness [0.0, 1.0]
     def set_backlight(self, brightness):
         self.backlight.set_brightness(brightness)
 
-if __name__ == '__main__':
+    def set_selected_prescription(self, prescription):
+        self.selected_prescription = prescription
+
+if __name__ == "__main__":
     device = Device()
     device.run()
-
-def get_device():
-    return device
