@@ -13,6 +13,7 @@ from ui.scene import Scene
 from ui.scenes.home import HelloLabel, DoseInfo
 from ui.scenes.pain_question import PainQuestion, FaceOption
 from ui.scenes.request_dose import DoseQuestion, DoseOption
+from ui.scenes.dispensing import DispensingLabel
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -80,7 +81,9 @@ class Device:
                 DoseOption(self, 2, 161),
                 DoseOption(self, 3, 321)
             ]),
-            State.DISPENSING: None,
+            State.DISPENSING: Scene([
+                DispensingLabel(self)
+            ]),
             State.OVERRIDE_DOSE: None,
             State.OVERRIDE_REASON: None,
             State.MENU: None,

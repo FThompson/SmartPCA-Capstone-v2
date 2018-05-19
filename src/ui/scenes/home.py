@@ -12,7 +12,7 @@ class HelloLabel(Component):
 
     def on_repaint(self, screen):
         font = fonts.get_font(fonts.FontType.ROBOTO_LIGHT.value, 24)
-        text = font.render("Hello.", True, Color.RIIT_DARKER_GRAY.value, Color.WHITE.value)
+        text = font.render('Hello.', True, Color.RIIT_DARKER_GRAY.value, Color.WHITE.value)
         centered_rect = ui.common.center(text, *self.bounds())
         screen.blit(text, centered_rect)
 
