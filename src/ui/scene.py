@@ -1,5 +1,4 @@
 import pygame
-from ui.colors import Color
 
 class Scene():
     def __init__(self, components=None):
@@ -24,4 +23,4 @@ class Scene():
 
     def clear(self, screen):
         for component in self.components:
-            pygame.draw.rect(screen, Color.WHITE.value, component.bounds())
+            component.clear(screen)

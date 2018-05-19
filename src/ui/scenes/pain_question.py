@@ -8,7 +8,7 @@ from states import State
 
 class Question():
     def __init__(self, key, lines, ask_window):
-        self.id = key
+        self.key = key
         self.lines = lines
         self.last_ask_time = 0
         self.ask_window = ask_window
@@ -24,26 +24,24 @@ QUESTIONS = (
     Question('regular', ('How bad is your', 'pain right now?'), 10 * 60 * 1000)
 )
 
-# bad code
-def get_current_question():
-    for question in QUESTIONS:
-        if question.should_ask():
-            return question
-    return None
-
 class PainQuestion(Component):
     def __init__(self, device):
-        super().__init__(0, 0, 480, 320)
+        super().__init__(0, 0, 480, 191)
         self.device = device
+        self.question = None
+
+    def update_question(self):
+        def get_current_question():
+            for question in QUESTIONS:
+                if question.should_ask():
+                    return question
+            return None
+        self.question = get_current_question()
 
     def on_repaint(self, screen):
-        current_question = get_current_question()
-        if current_question is None:
-            self.device.set_state(State.REQUEST_DOSE)
-            return
-        else:
-            ui.common.render_question(screen, current_question.lines)
-
+        self.clear(screen)
+        self.update_question()
+        ui.common.render_question(screen, self.question.lines)
 
     def on_press(self, x, y):
         pass
@@ -51,13 +49,10 @@ class PainQuestion(Component):
     def on_click(self, x, y):
         pass
 
-    @staticmethod
-    def should_ask_question(last_question_time, question_window):
-        return last_question_time == 0 or millis() - last_question_time > question_window
-
 class FaceOption(QuestionButton):
-    def __init__(self, device, face, x):
+    def __init__(self, device, pain_question, face, x):
         self.device = device
+        self.question_label = pain_question
         self.face = face
         super().__init__(x, 191, 118, 129, Color.RIIT_LIGHT_GRAY.value)
 
@@ -71,11 +66,11 @@ class FaceOption(QuestionButton):
     def on_click(self, x, y):
         self.color = Color.RIIT_LIGHT_GRAY.value
         self.repaint()
-        current_question = get_current_question()
-        current_question.update_ask_time()
-        # TODO: record response
-        print('clicked face {}'.format(self.face))
-        current_question = get_current_question()
-        if current_question is None:
+        self.question_label.question.update_ask_time()
+        print('answered {} q with face {}'.format(self.question_label.question.key, self.face))
+        self.question_label.update_question()
+        if self.question_label.question is None:
             self.device.set_state(State.REQUEST_DOSE)
+        else:
+            self.question_label.repaint() # not ideal double checking update_q here and repaint
         

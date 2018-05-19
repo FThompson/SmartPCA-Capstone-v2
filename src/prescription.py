@@ -30,7 +30,7 @@ class Prescription:
         return available
 
     def use(self, count):
-        for i in range(self.max_dose, 0, -1):
+        for i in reversed(range(0, self.max_dose)):
             self.last_dose_times[i] = self.last_dose_times[i - 1]
         now = millis()
         for i in range(0, count):

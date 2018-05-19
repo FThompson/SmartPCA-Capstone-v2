@@ -12,6 +12,7 @@ from ui.colors import Color
 from ui.scene import Scene
 from ui.scenes.home import HelloLabel, DoseInfo
 from ui.scenes.pain_question import PainQuestion, FaceOption
+from ui.scenes.request_dose import DoseQuestion, DoseOption
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -36,6 +37,7 @@ class Device:
         self.left_prescription = Prescription('Opioids', 3, 1 * 10 * 60 * 1000, True)
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
+        self.desired_dose = 0
         self.setup_scenes()
         self.scene = self.scenes.get(State.HOME)
         self.state_changed = False
@@ -58,6 +60,7 @@ class Device:
         pygame.display.update()
 
     def setup_scenes(self):
+        pain_question = PainQuestion(self)
         self.scenes = {
             State.HOME: Scene([
                 HelloLabel(),
@@ -65,13 +68,18 @@ class Device:
                 DoseInfo(self, self.right_prescription, Color.RIIT_PURPLE.value, 255),
             ]),
             State.PAIN_QUESTION: Scene([
-                PainQuestion(self),
-                FaceOption(self, 1, 1),
-                FaceOption(self, 2, 121),
-                FaceOption(self, 3, 241),
-                FaceOption(self, 4, 361)
+                pain_question,
+                FaceOption(self, pain_question, 1, 1),
+                FaceOption(self, pain_question, 2, 121),
+                FaceOption(self, pain_question, 3, 241),
+                FaceOption(self, pain_question, 4, 361)
             ]),
-            State.REQUEST_DOSE: None,
+            State.REQUEST_DOSE: Scene([
+                DoseQuestion(self),
+                DoseOption(self, 1, 1),
+                DoseOption(self, 2, 161),
+                DoseOption(self, 3, 321)
+            ]),
             State.DISPENSING: None,
             State.OVERRIDE_DOSE: None,
             State.OVERRIDE_REASON: None,
@@ -94,8 +102,7 @@ class Device:
         self.servo.update()
         self.stepper.update()
         self.scene.update(self.screen)
-        pygame.display.flip()
-        pygame.display.update()
+        pygame.display.update()  # could optimize to only redraw prev and cur scene component rects
         self.state_changed = False
 
     def set_state(self, state):
@@ -109,6 +116,10 @@ class Device:
 
     def set_selected_prescription(self, prescription):
         self.selected_prescription = prescription
+
+    # does not support distinguishing two types of medication
+    def dispense(self, doses):
+        pass
 
 if __name__ == "__main__":
     device = Device()

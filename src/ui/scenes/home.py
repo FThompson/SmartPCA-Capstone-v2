@@ -11,17 +11,16 @@ class HelloLabel(Component):
         super().__init__(105, 25, 270, 29)
 
     def on_repaint(self, screen):
-        print("painted hello")
         font = fonts.get_font(fonts.FontType.ROBOTO_LIGHT.value, 24)
         text = font.render("Hello.", True, Color.RIIT_DARKER_GRAY.value, Color.WHITE.value)
         centered_rect = ui.common.center(text, *self.bounds())
         screen.blit(text, centered_rect)
 
     def on_press(self, x, y):
-        print("pressed hello")
+        pass
 
     def on_click(self, x, y):
-        print("clicked hello")
+        pass
 
 class DoseInfo(Component):
     def __init__(self, device, prescription, color, x):

@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import pygame
+from ui.colors import Color
 
 class Component(ABC):
     def __init__(self, x, y, w, h):
@@ -37,6 +39,9 @@ class Component(ABC):
 
     def contains(self, x, y):
         return x >= self.x and x <= self.x + self.w and y >= self.y and y <= self.y + self.h
+
+    def clear(self, screen):
+        pygame.draw.rect(screen, Color.WHITE.value, self.bounds())
 
     def dx(self, x):
         return x + self.x
