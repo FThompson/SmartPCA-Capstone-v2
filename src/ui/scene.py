@@ -7,6 +7,10 @@ class Scene():
     def add(self, component):
         self.components.append(component)
 
+    def repaint(self):
+        for component in self.components:
+            component.repaint()
+
     def update(self, screen):
         event_queue = pygame.event.get()
         for component in self.components:
@@ -16,6 +20,7 @@ class Scene():
             for event in event_queue:
                 x, y = event.pos
                 if component.contains(x, y):
+                    # TODO: add press/click logic to discern click from mouseup
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         component.on_press(x, y)
                     elif event.type == pygame.MOUSEBUTTONUP:

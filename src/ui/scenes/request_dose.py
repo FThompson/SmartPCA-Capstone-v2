@@ -10,7 +10,7 @@ class DoseQuestion(Component):
     def __init__(self, device):
         super().__init__(0, 0, 480, 191)
         self.device = device
-    
+
     def on_repaint(self, screen):
         lines = (
             'How many {} do'.format(self.device.selected_prescription.label),
@@ -26,10 +26,10 @@ class DoseQuestion(Component):
 
 class DoseOption(QuestionButton):
     def __init__(self, device, position, x):
+        super().__init__(x, 191, 158, 129, Color.RIIT_LIGHT_GRAY.value)
         self.device = device
         self.position = position
         self.number = position
-        super().__init__(x, 191, 158, 129, Color.RIIT_LIGHT_GRAY.value)
 
     def get_surface(self):
         # hacky non-OOP solution to count in interest of time

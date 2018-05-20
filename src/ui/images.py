@@ -1,5 +1,5 @@
 import pygame
-import resources
+import util.resources as resources
 
 images = {}
 

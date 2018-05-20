@@ -41,7 +41,11 @@ class PainQuestion(Component):
     def on_repaint(self, screen):
         self.clear(screen)
         self.update_question()
-        ui.common.render_question(screen, self.question.lines)
+        # not ideal to place this logic here
+        if self.question is None:
+            self.device.set_state(State.REQUEST_DOSE)
+        else:
+            ui.common.render_question(screen, self.question.lines)
 
     def on_press(self, x, y):
         pass

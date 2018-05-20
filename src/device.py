@@ -14,6 +14,7 @@ from ui.scenes.home import HelloLabel, DoseInfo
 from ui.scenes.pain_question import PainQuestion, FaceOption
 from ui.scenes.request_dose import DoseQuestion, DoseOption
 from ui.scenes.dispensing import DispensingLabel
+from ui.scenes.override_dose import OverrideQuestion, OverrideOption
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -35,7 +36,7 @@ class Device:
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
         self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS)
-        self.left_prescription = Prescription('Opioids', 3, 1 * 10 * 60 * 1000, True)
+        self.left_prescription = Prescription('Opioids', 3, 1 * 2 * 60 * 1000, True)
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
         self.desired_dose = 0
@@ -84,7 +85,11 @@ class Device:
             State.DISPENSING: Scene([
                 DispensingLabel(self)
             ]),
-            State.OVERRIDE_DOSE: None,
+            State.OVERRIDE_DOSE: Scene([
+                OverrideQuestion(self),
+                OverrideOption(self, 'YES', State.OVERRIDE_REASON, 1),
+                OverrideOption(self, 'NO', State.HOME, 241)
+            ]),
             State.OVERRIDE_REASON: None,
             State.MENU: None,
             State.SETTINGS: None,
@@ -109,8 +114,10 @@ class Device:
         self.state_changed = False
 
     def set_state(self, state):
+        print('setting state to {}'.format(state))
         self.scene.clear(self.screen)
         self.scene = self.scenes.get(state)
+        self.scene.repaint()
         self.state_changed = True  # break draw cycle if state changed
 
     # brightness [0.0, 1.0]
@@ -122,6 +129,7 @@ class Device:
 
     # does not support distinguishing two types of medication
     def dispense(self, doses):
+        self.set_state(State.HOME)
         pass
 
 if __name__ == "__main__":

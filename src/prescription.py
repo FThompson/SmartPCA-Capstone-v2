@@ -1,4 +1,5 @@
 from util.time import millis
+from math import ceil
 
 class Prescription:
     def __init__(self, label, max_dose, dose_window, show_override):
@@ -35,3 +36,13 @@ class Prescription:
         now = millis()
         for i in range(0, count):
             self.last_dose_times[i] = now
+
+    def format_time_until_next_dose(self):
+        seconds = ceil(self.get_time_until_next_dose() / 1000)
+        if seconds >= 60:
+            minutes = ceil(seconds / 60)
+            if minutes >= 60:
+                hours = ceil(minutes / 60)
+                return (hours, 'hours')
+            return (minutes, 'minutes')
+        return (seconds, 'seconds')

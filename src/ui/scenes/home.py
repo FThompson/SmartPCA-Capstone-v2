@@ -1,3 +1,4 @@
+import math
 import pygame
 import pygame.gfxdraw
 import ui.common
@@ -5,6 +6,7 @@ import ui.fonts as fonts
 from ui.colors import Color
 from ui.component import Component
 from states import State
+from util.time import millis
 
 class HelloLabel(Component):
     def __init__(self):
@@ -29,11 +31,16 @@ class DoseInfo(Component):
         self.prescription = prescription
         self.color = color
         self.border_color = Color.RIIT_GRAY.value
+        self.displaying_ready = True
+        self.last_repaint_time = 0
+        self.repaint_delay = 1000  # repaint once per second
 
     def on_repaint(self, screen):
+        pygame.draw.rect(screen, Color.WHITE.value, (self.dx(14), self.dy(6), 162, 188)) # clear
         pygame.draw.rect(screen, self.border_color, self.bounds(), 1)
         doses = self.prescription.get_available_doses()
         if doses == self.prescription.max_dose:
+            self.displaying_ready = True
             pygame.gfxdraw.aacircle(screen, self.dx(95), self.dy(87), 75, self.color)
             pygame.gfxdraw.filled_circle(screen, self.dx(95), self.dy(87), 75, self.color)
             ready_font = fonts.get_font(fonts.FontType.ROBOTO_LIGHT.value, 36)
@@ -41,6 +48,7 @@ class DoseInfo(Component):
             centered_rect = ui.common.center(text, self.x, self.dy(12), self.w, 150)
             screen.blit(text, centered_rect)
         else:
+            self.displaying_ready = False
             self.draw_progress_circle(screen)
         self.draw_dose_dots(screen, doses)
         label_font = fonts.get_font(fonts.FontType.ROBOTO_MEDIUM.value, 24)
@@ -58,6 +66,14 @@ class DoseInfo(Component):
         self.device.set_selected_prescription(self.prescription)
         self.device.set_state(State.PAIN_QUESTION)
 
+    def needs_repaint(self):
+        if not self.displaying_ready: # displaying progress, so repaint often
+            now = millis()
+            if now - self.last_repaint_time > self.repaint_delay:
+                self.last_repaint_time = now
+                return True
+        return super().needs_repaint()
+
     def draw_dose_dots(self, screen, doses):
         dots_width = 10 * self.prescription.max_dose + 9 * (self.prescription.max_dose - 1)
         dots_x = self.dx(int(self.w / 2 - dots_width / 2))
@@ -70,5 +86,27 @@ class DoseInfo(Component):
             else:
                 pygame.gfxdraw.aacircle(screen, dot_x, dot_y, 5, Color.RIIT_DARK_GRAY.value)
 
+    # need to break this monster down
     def draw_progress_circle(self, screen):
-        pass
+        x = self.dx(20)
+        y = self.dy(12)
+        pygame.gfxdraw.aacircle(screen, x + 75, y + 75, 75, Color.RIIT_GRAY.value)
+        progress = 1 - self.prescription.get_time_until_next_dose() / self.prescription.dose_window
+        rads = 2 * math.pi * progress
+        end = (1 * math.pi / 2)
+        start = end - rads
+        pygame.draw.arc(screen, self.color, (x, y, 150, 150), start, end, 5)
+        dot_x = round(75 * math.cos(start)) + 75
+        dot_y = round(75 * -math.sin(start)) + 75
+        pygame.gfxdraw.aacircle(screen, x + dot_x, y + dot_y, 5, self.color)
+        pygame.gfxdraw.filled_circle(screen, x + dot_x, y + dot_y, 5, self.color)
+        number, unit = self.prescription.format_time_until_next_dose()
+        number_font = fonts.get_font(fonts.FontType.ROBOTO_LIGHT.value, 64)
+        number_text = number_font.render(str(number), True, Color.RIIT_DARK_GRAY.value,
+                                         Color.WHITE.value)
+        number_centered_rect = ui.common.center(number_text, self.x, y + 29, self.w, 64)
+        screen.blit(number_text, number_centered_rect)
+        unit_font = fonts.get_font(fonts.FontType.ROBOTO_MEDIUM.value, 18)
+        unit_text = unit_font.render(unit, True, Color.RIIT_DARK_GRAY.value, Color.WHITE.value)
+        unit_centered_rect = ui.common.center(unit_text, self.x, y + 100, self.w, 18)
+        screen.blit(unit_text, unit_centered_rect)
