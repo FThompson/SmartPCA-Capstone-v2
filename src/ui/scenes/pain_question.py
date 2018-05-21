@@ -1,10 +1,10 @@
 import ui.common
 import util.images
+from states import State
 from ui.button import QuestionButton
 from ui.colors import Color
 from ui.component import Component
 from util.time import millis
-from states import State
 
 class Question():
     def __init__(self, key, lines, ask_window):
@@ -77,4 +77,3 @@ class FaceOption(QuestionButton):
             self.device.set_state(State.REQUEST_DOSE)
         else:
             self.question_label.repaint() # not ideal double checking update_q here and repaint
-        

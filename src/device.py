@@ -16,6 +16,7 @@ from ui.scenes.home import DoseInfo, HelloLabel
 from ui.scenes.override_dose import OverrideOption, OverrideQuestion
 from ui.scenes.pain_question import FaceOption, PainQuestion
 from ui.scenes.request_dose import DoseOption, DoseQuestion
+from ui.scenes.override_reason import OverrideLabel, OverrideReasonOption
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -94,7 +95,12 @@ class Device:
                 OverrideOption(self, 'YES', State.OVERRIDE_REASON, 1),
                 OverrideOption(self, 'NO', State.HOME, 241)
             ]),
-            State.OVERRIDE_REASON: None,
+            State.OVERRIDE_REASON: Scene([
+                OverrideLabel(),
+                OverrideReasonOption(self, 'I am in pain right now.', 1),
+                OverrideReasonOption(self, 'I lost/cannot find the pill', 2),
+                OverrideReasonOption(self, 'Pill did not dispense.', 3)
+            ]),
             State.MENU: None,
             State.SETTINGS: None,
             State.PRESCRIPTION: None,
