@@ -87,6 +87,7 @@ class DoseInfo(Component):
                 pygame.gfxdraw.aacircle(screen, dot_x, dot_y, 5, Color.RIIT_DARK_GRAY.value)
 
     # need to break this monster down
+    # TODO: write custom anti alias arc code
     def draw_progress_circle(self, screen):
         x = self.dx(20)
         y = self.dy(12)

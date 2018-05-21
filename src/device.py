@@ -3,19 +3,19 @@ import os
 import pigpio
 import pygame
 
+import util.audio as audio
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
 from prescription import Prescription
 from states import State
 from ui.colors import Color
-import util.audio as audio
 from ui.scene import Scene
-from ui.scenes.home import HelloLabel, DoseInfo
-from ui.scenes.pain_question import PainQuestion, FaceOption
-from ui.scenes.request_dose import DoseQuestion, DoseOption
 from ui.scenes.dispensing import DispensingLabel
-from ui.scenes.override_dose import OverrideQuestion, OverrideOption
+from ui.scenes.home import DoseInfo, HelloLabel
+from ui.scenes.override_dose import OverrideOption, OverrideQuestion
+from ui.scenes.pain_question import FaceOption, PainQuestion
+from ui.scenes.request_dose import DoseOption, DoseQuestion
 
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
@@ -56,6 +56,7 @@ class Device:
         os.putenv('SDL_FBDEV', '/dev/fb1')
         os.putenv('SDL_MOUSEDRV', 'TSLIB')
         os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
         pygame.init()
         # pygame.mixer.init()
         pygame.event.set_allowed(EVENT_TYPES)
