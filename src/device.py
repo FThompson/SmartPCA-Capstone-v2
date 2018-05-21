@@ -11,6 +11,7 @@ from prescription import Prescription
 from states import State
 from ui.colors import Color
 from ui.back_button import BackButton
+from ui.menu_button import MenuButton
 from ui.scene import Scene
 from ui.scenes.dispensing import DispensingLabel
 from ui.scenes.home import DoseInfo, HelloLabel
@@ -45,8 +46,9 @@ class Device:
         self.desired_dose = 0
         self.pain_question = PainQuestion.get_current_question()
         self.setup_scenes()
-        self.scene = self.scenes.get(State.HOME)
-        self.state_changed = False
+        self.state = State.HOME
+        self.last_state = self.state
+        self.scene = self.scenes.get(self.state)
         self.running = True
         self.dispensing = False
         print('Done.')
@@ -69,27 +71,29 @@ class Device:
         pygame.display.update()
 
     def setup_scenes(self):
-        # TODO: back button needs it's own logic beyond current scene handling
-        # will need to move pain question appearance logic into device for it to access
+        back_button = BackButton(self)
         pain_question = PainQuestionLabel(self)
         self.scenes = {
             State.HOME: Scene([
                 HelloLabel(),
                 DoseInfo(self, self.left_prescription, Color.RIIT_BLUE.value, 34),
                 DoseInfo(self, self.right_prescription, Color.RIIT_PURPLE.value, 255),
+                MenuButton(self)
             ]),
             State.PAIN_QUESTION: Scene([
                 pain_question,
                 FaceOption(self, 1, 1),
                 FaceOption(self, 2, 121),
                 FaceOption(self, 3, 241),
-                FaceOption(self, 4, 361)
+                FaceOption(self, 4, 361),
+                back_button
             ]),
             State.REQUEST_DOSE: Scene([
                 DoseQuestion(self),
                 DoseOption(self, 1, 1),
                 DoseOption(self, 2, 161),
-                DoseOption(self, 3, 321)
+                DoseOption(self, 3, 321),
+                back_button
             ]),
             State.DISPENSING: Scene([
                 DispensingLabel(self)
@@ -97,18 +101,28 @@ class Device:
             State.OVERRIDE_DOSE: Scene([
                 OverrideQuestion(self),
                 OverrideOption(self, 'YES', State.OVERRIDE_REASON, 1),
-                OverrideOption(self, 'NO', State.HOME, 241)
+                OverrideOption(self, 'NO', State.HOME, 241),
+                back_button
             ]),
             State.OVERRIDE_REASON: Scene([
                 OverrideLabel(),
                 OverrideReasonOption(self, 'I am in pain right now.', 1),
                 OverrideReasonOption(self, 'I lost/cannot find the pill', 2),
-                OverrideReasonOption(self, 'Pill did not dispense.', 3)
+                OverrideReasonOption(self, 'Pill did not dispense.', 3),
+                back_button
             ]),
-            State.MENU: None,
-            State.SETTINGS: None,
-            State.PRESCRIPTION: None,
-            State.CONTACT: None
+            State.MENU: Scene([
+                back_button
+            ]),
+            State.SETTINGS: Scene([
+                back_button
+            ]),
+            State.PRESCRIPTION: Scene([
+                back_button
+            ]),
+            State.CONTACT: Scene([
+                back_button
+            ])
         }
 
     def run(self):
@@ -127,15 +141,15 @@ class Device:
         #     return  # smooths out stepper motor motion
         self.scene.update(self.screen)
         pygame.display.update()  # could optimize to only redraw prev and cur scene component rects
-        self.state_changed = False
 
     def set_state(self, state):
         audio.Sample.DISPENSE.play()
         print('setting state to {}'.format(state))
+        self.last_state = state
         self.scene.clear(self.screen)
         self.scene = self.scenes.get(state)
         self.scene.repaint()
-        self.state_changed = True  # break draw cycle if state changed
+        self.state = state
 
     # brightness [0.0, 1.0]
     def set_backlight(self, brightness):

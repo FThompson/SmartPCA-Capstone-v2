@@ -11,3 +11,4 @@ class State(Enum):
     SETTINGS = 8
     PRESCRIPTION = 9
     CONTACT = 10
+    SLEEP = 11
