@@ -1,5 +1,4 @@
 import ui.common
-import ui.images
 from ui.button import QuestionButton
 from ui.colors import Color
 from ui.component import Component
@@ -45,6 +44,7 @@ class DoseOption(QuestionButton):
         self.repaint()
 
     def on_click(self, x, y):
+        self.device.stepper.step(250)
         self.color = Color.RIIT_LIGHT_GRAY.value
         self.repaint()
         print('requested {} {}'.format(self.number, self.device.selected_prescription.label))

@@ -1,5 +1,5 @@
 import ui.common
-import ui.images
+import util.images
 from ui.button import QuestionButton
 from ui.colors import Color
 from ui.component import Component
@@ -61,7 +61,7 @@ class FaceOption(QuestionButton):
         super().__init__(x, 191, 118, 129, Color.RIIT_LIGHT_GRAY.value)
 
     def get_surface(self):
-        return ui.images.load_image('face{}.png'.format(self.face))
+        return util.images.load_image('face{}.png'.format(self.face))
 
     def on_press(self, x, y):
         self.color = Color.RIIT_GRAY.value

@@ -49,10 +49,11 @@ class Servo():
             now = millis()
             if now - self.last_step_time > self.step_delay:
                 self.last_step_time = now
+                print('setting angle to ' + str(self.angle + self.direction))
                 self.set_angle(self.angle + self.direction)
 
 def main():
-    pin = 25
+    pin = 2
     gpio = pigpio.pi()
     servo = Servo(gpio, pin)
     try:

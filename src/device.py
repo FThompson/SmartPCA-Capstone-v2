@@ -9,6 +9,7 @@ from physical.stepper import Stepper
 from prescription import Prescription
 from states import State
 from ui.colors import Color
+import util.audio as audio
 from ui.scene import Scene
 from ui.scenes.home import HelloLabel, DoseInfo
 from ui.scenes.pain_question import PainQuestion, FaceOption
@@ -35,7 +36,7 @@ class Device:
         print('Initializing components... ')
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
-        self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS)
+        self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS, rpm=50)
         self.left_prescription = Prescription('Opioids', 3, 1 * 2 * 60 * 1000, True)
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
@@ -44,6 +45,7 @@ class Device:
         self.scene = self.scenes.get(State.HOME)
         self.state_changed = False
         self.running = True
+        self.dispensing = False
         print('Done.')
 
     def __del__(self):
@@ -55,6 +57,7 @@ class Device:
         os.putenv('SDL_MOUSEDRV', 'TSLIB')
         os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
         pygame.init()
+        # pygame.mixer.init()
         pygame.event.set_allowed(EVENT_TYPES)
         pygame.mouse.set_visible(False)
         self.screen = pygame.display.set_mode(SCREEN_SIZE, 0, 16)
@@ -109,11 +112,14 @@ class Device:
     def update(self):
         self.servo.update()
         self.stepper.update()
+        # if self.dispensing:
+        #     return  # smooths out stepper motor motion
         self.scene.update(self.screen)
         pygame.display.update()  # could optimize to only redraw prev and cur scene component rects
         self.state_changed = False
 
     def set_state(self, state):
+        audio.Sample.DISPENSE.play()
         print('setting state to {}'.format(state))
         self.scene.clear(self.screen)
         self.scene = self.scenes.get(state)
@@ -130,6 +136,7 @@ class Device:
     # does not support distinguishing two types of medication
     def dispense(self, doses):
         self.set_state(State.HOME)
+        #self.dispensing = True
         pass
 
 if __name__ == "__main__":

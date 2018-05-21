@@ -1,10 +1,8 @@
 import ui.common
-import ui.images
 from ui.button import QuestionButton
 from ui.colors import Color
 from ui.component import Component
 import ui.fonts as fonts
-from states import State
 
 class OverrideQuestion(Component):
     def __init__(self, device):
