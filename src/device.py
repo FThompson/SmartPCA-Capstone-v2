@@ -10,11 +10,12 @@ from physical.stepper import Stepper
 from prescription import Prescription
 from states import State
 from ui.colors import Color
+from ui.back_button import BackButton
 from ui.scene import Scene
 from ui.scenes.dispensing import DispensingLabel
 from ui.scenes.home import DoseInfo, HelloLabel
 from ui.scenes.override_dose import OverrideOption, OverrideQuestion
-from ui.scenes.pain_question import FaceOption, PainQuestion
+from ui.scenes.pain_question import FaceOption, PainQuestion, PainQuestionLabel
 from ui.scenes.request_dose import DoseOption, DoseQuestion
 from ui.scenes.override_reason import OverrideLabel, OverrideReasonOption
 
@@ -42,6 +43,7 @@ class Device:
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
         self.desired_dose = 0
+        self.pain_question = PainQuestion.get_current_question()
         self.setup_scenes()
         self.scene = self.scenes.get(State.HOME)
         self.state_changed = False
@@ -67,7 +69,9 @@ class Device:
         pygame.display.update()
 
     def setup_scenes(self):
-        pain_question = PainQuestion(self)
+        # TODO: back button needs it's own logic beyond current scene handling
+        # will need to move pain question appearance logic into device for it to access
+        pain_question = PainQuestionLabel(self)
         self.scenes = {
             State.HOME: Scene([
                 HelloLabel(),
@@ -76,10 +80,10 @@ class Device:
             ]),
             State.PAIN_QUESTION: Scene([
                 pain_question,
-                FaceOption(self, pain_question, 1, 1),
-                FaceOption(self, pain_question, 2, 121),
-                FaceOption(self, pain_question, 3, 241),
-                FaceOption(self, pain_question, 4, 361)
+                FaceOption(self, 1, 1),
+                FaceOption(self, 2, 121),
+                FaceOption(self, 3, 241),
+                FaceOption(self, 4, 361)
             ]),
             State.REQUEST_DOSE: Scene([
                 DoseQuestion(self),
@@ -139,6 +143,10 @@ class Device:
 
     def set_selected_prescription(self, prescription):
         self.selected_prescription = prescription
+
+    def has_pain_question(self):
+        self.pain_question = PainQuestion.get_current_question()
+        return self.pain_question is not None
 
     # does not support distinguishing two types of medication
     def dispense(self, doses):

@@ -58,13 +58,16 @@ class DoseInfo(Component):
         screen.blit(text, centered_rect)
 
     def on_press(self, x, y):
-        self.border_color = Color.RIIT_BLUE.value
+        self.border_color = Color.RIIT_DARK_GRAY.value
         self.repaint()
 
     def on_click(self, x, y):
         self.border_color = Color.RIIT_GRAY.value
         self.device.set_selected_prescription(self.prescription)
-        self.device.set_state(State.PAIN_QUESTION)
+        if self.device.has_pain_question():
+            self.device.set_state(State.PAIN_QUESTION)
+        else:
+            self.device.set_state(State.REQUEST_DOSE)
 
     def needs_repaint(self):
         if not self.displaying_ready: # displaying progress, so repaint often

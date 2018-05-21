@@ -1,6 +1,4 @@
-import math
 import pygame
-import pygame.gfxdraw
 import ui.common
 import ui.fonts as fonts
 from ui.colors import Color
