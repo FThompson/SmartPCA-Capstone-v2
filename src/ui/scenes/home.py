@@ -90,6 +90,7 @@ class DoseInfo(Component):
                 pygame.gfxdraw.aacircle(screen, dot_x, dot_y, 5, Color.RIIT_DARK_GRAY.value)
 
     # need to break this monster down
+    # should prob rewrite fonts to have a render function on font enum type with centering
     # TODO: write custom anti alias arc code
     def draw_progress_circle(self, screen):
         x = self.dx(20)
@@ -99,7 +100,7 @@ class DoseInfo(Component):
         rads = 2 * math.pi * progress
         end = (1 * math.pi / 2)
         start = end - rads
-        pygame.draw.arc(screen, self.color, (x, y, 150, 150), start, end, 5)
+        pygame.draw.arc(screen, self.color, (x - 2, y - 2, 154, 154), start, end, 4)
         dot_x = round(75 * math.cos(start)) + 75
         dot_y = round(75 * -math.sin(start)) + 75
         pygame.gfxdraw.aacircle(screen, x + dot_x, y + dot_y, 5, self.color)

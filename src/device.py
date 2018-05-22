@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import pigpio
 import pygame
@@ -7,7 +8,7 @@ import util.audio as audio
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
-from prescription import Prescription
+from rx.prescription import Prescription
 from states import State
 from ui.colors import Color
 from ui.back_button import BackButton
@@ -20,6 +21,7 @@ from ui.scenes.pain_question import FaceOption, PainQuestion, PainQuestionLabel
 from ui.scenes.request_dose import DoseOption, DoseQuestion
 from ui.scenes.override_reason import OverrideLabel, OverrideReasonOption
 
+PILL_CAPACITY = 90
 SCREEN_SIZE = (480, 320)
 EVENT_TYPES = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
 
@@ -143,7 +145,9 @@ class Device:
         pygame.display.update()  # could optimize to only redraw prev and cur scene component rects
 
     def set_state(self, state):
-        audio.Sample.DISPENSE.play()
+        # audio.Sample.DISPENSE.set_volume(audio.Sample.DISPENSE.volume - 0.2)
+        # audio.Sample.DISPENSE.play()
+        # self.backlight.set_brightness(self.backlight.brightness - 0.2)
         print('setting state to {}'.format(state))
         self.last_state = state
         self.scene.clear(self.screen)

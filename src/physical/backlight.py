@@ -12,4 +12,5 @@ class Backlight():
     # brightness [0.0, 1.0]
     def set_brightness(self, brightness):
         self.brightness = brightness
+        print('setting brightness to {}'.format(brightness))
         self.gpio.set_PWM_dutycycle(self.pin, brightness * 1023)
