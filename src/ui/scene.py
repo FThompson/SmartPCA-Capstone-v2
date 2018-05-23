@@ -1,4 +1,5 @@
 import pygame
+import util.audio as audio
 
 class Scene():
     def __init__(self, components=None):
@@ -22,6 +23,8 @@ class Scene():
                 if component.contains(x, y):
                     # TODO: add press/click logic to discern click from mouseup
                     if event.type == pygame.MOUSEBUTTONDOWN:
+                        print('playing click')
+                        audio.Sample.CLICK.play()
                         component.on_press(x, y)
                     elif event.type == pygame.MOUSEBUTTONUP:
                         component.on_click(x, y)

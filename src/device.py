@@ -4,11 +4,11 @@ import subprocess
 import pigpio
 import pygame
 
-import util.audio as audio
 from physical.backlight import Backlight
 from physical.servo import Servo
 from physical.stepper import Stepper
 from rx.prescription import Prescription
+from rx.dispenser import Dispenser
 from states import State
 from ui.colors import Color
 from ui.back_button import BackButton
@@ -42,6 +42,7 @@ class Device:
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
         self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS, rpm=50)
+        self.dispenser = Dispenser(90, 90, self.servo, self.stepper)
         self.left_prescription = Prescription('Opioids', 3, 1 * 2 * 60 * 1000, True)
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
         self.selected_prescription = None
@@ -63,7 +64,7 @@ class Device:
         os.putenv('SDL_FBDEV', '/dev/fb1')
         os.putenv('SDL_MOUSEDRV', 'TSLIB')
         os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
-        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
+        pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
         pygame.init()
         # pygame.mixer.init()
         pygame.event.set_allowed(EVENT_TYPES)
@@ -137,12 +138,14 @@ class Device:
             self.running = False
 
     def update(self):
-        self.servo.update()
-        self.stepper.update()
-        # if self.dispensing:
-        #     return  # smooths out stepper motor motion
-        self.scene.update(self.screen)
-        pygame.display.update()  # could optimize to only redraw prev and cur scene component rects
+        if self.dispenser.is_dispensing():
+            self.dispenser.update()
+        else: # tradeoff: ui wont update but stepper motor will be smooth. necessary? idk
+            if self.dispensing: # done dispensing, go to home
+                self.set_state(State.HOME)
+                self.dispensing = False
+            self.scene.update(self.screen)
+            pygame.display.update()  # could optimize to only redraw prev and cur scene comp rects
 
     def set_state(self, state):
         # audio.Sample.DISPENSE.set_volume(audio.Sample.DISPENSE.volume - 0.2)
@@ -168,9 +171,11 @@ class Device:
 
     # does not support distinguishing two types of medication
     def dispense(self, doses):
-        self.set_state(State.HOME)
-        #self.dispensing = True
-        pass
+        self.dispensing = True
+        self.dispenser.dispense(doses)
+
+    def get_pill_count(self):
+        return self.dispenser.count
 
 if __name__ == "__main__":
     device = Device()

@@ -75,12 +75,9 @@ class Stepper:
                 self.send_signal(*signal)
 
 def main():
-    coil_pin_a1 = 4
-    coil_pin_a2 = 17
-    coil_pin_b1 = 27
-    coil_pin_b2 = 22
+    from device import STEPPER_PINS
     gpio = pigpio.pi()
-    stepper = Stepper(gpio, 512, coil_pin_a1, coil_pin_a2, coil_pin_b1, coil_pin_b2)
+    stepper = Stepper(gpio, 512, *STEPPER_PINS)
     try:
         while True:
             if stepper.is_stepping():

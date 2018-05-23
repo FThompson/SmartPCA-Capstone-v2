@@ -53,9 +53,9 @@ class Servo():
                 self.set_angle(self.angle + self.direction)
 
 def main():
-    pin = 2
+    from device import SERVO_PIN
     gpio = pigpio.pi()
-    servo = Servo(gpio, pin)
+    servo = Servo(gpio, SERVO_PIN)
     try:
         while True:
             if servo.is_sweeping():

@@ -1,47 +1,47 @@
-import time
-from abc import ABC, abstractmethod
+from util.time import millis
 
-# class Dispenser(ABC):
 class Dispenser():
-    def __init__(self, capacity, count, servo, stepper, slots=16, servo_start=0, servo_end=120):
+    def __init__(self, capacity, count, servo, stepper, slots=16, servo_start=0, servo_end=120, servo_wait=1000):
         self.count = count
         self.servo = servo
         self.stepper = stepper
         self.slots = slots
-        self.slot_capacity = capacity / (slots - 1)
-        self.step_angle = stepper.n_steps / slots
+        self.capacity = capacity
+        self.slot_capacity = capacity // (slots - 1)
+        self.steps_per_slot = stepper.n_steps // slots
         self.servo_start = servo_start
         self.servo_end = servo_end
+        self.last_servo_time = 0
+        self.servo_wait = servo_wait
+        self.number_to_dispense = 0
 
-    # @abstractmethod
     def dispense(self, count):
-        current_slot_count = self.count % self.slot_capacity
-        if current_slot_count == 0 or self.stepper.current_step == 0:
-            self.stepper.step(self.step_angle)
-            while self.stepper.is_stepping():
+        self.number_to_dispense = count
+
+    def is_dispensing(self):
+        return self.number_to_dispense > 0
+
+    def update(self):
+        if not self.is_stepper_lined_up():
+            if not self.stepper.is_stepping():
+                self.stepper.step(self.steps_per_slot)
+            else:
                 self.stepper.update()
-            time.sleep(0.25)
-        self.servo.set_angle(self.servo_end)
-        time.sleep(1)
-        self.servo.set_angle(self.servo_start)
-        time.sleep(1)
-        self.count -= 1
-        if count > 1:
-            self.dispense(count - 1)
+        else:
+            now = millis()
+            if now - self.last_servo_time > self.servo_wait:
+                self.last_servo_time = now
+                if self.servo.angle == self.servo_start:
+                    self.servo.set_angle(self.servo_end)
+                elif self.servo.angle == self.servo_end:
+                    self.servo.set_angle(self.servo_start)
+                    self.number_to_dispense -= 1
+                    self.count -= 1
 
-    # def update(self):
-    #     current_slot_count = self.count % self.slot_capacity
-    #     if current_slot_count == 0:
-    #         self.stepper.step(self.step_angle)
+    def get_required_step(self):
+        used = self.capacity - self.count
+        slots_used = used // self.slot_capacity
+        return (slots_used + 1) * self.steps_per_slot
 
-# class Dispenser2():
-#     def __init__(self, capacity1, capacity2, count1, count2, servo, stepper, slots=16, servo_start=0, servo_end=120):
-#         self.capacity = capacity
-#         self.count = count
-#         self.servo = servo
-#         self.stepper = stepper
-#         self.slots = slots
-#         self.slot_capacity = capacity / (slots - 1)
-#         self.step_angle = stepper.n_steps / slots
-#         self.servo_start = servo_start
-#         self.servo_end = servo_end
+    def is_stepper_lined_up(self):
+        return self.get_required_step() == self.stepper.current_step

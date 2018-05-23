@@ -3,6 +3,7 @@ import ui.common
 import ui.fonts as fonts
 from ui.colors import Color
 from ui.component import Component
+import util.audio as audio
 from states import State
 
 class OverrideLabel(Component):
@@ -44,6 +45,7 @@ class OverrideReasonOption(Component):
         self.color = Color.RIIT_LIGHT_GRAY.value
         self.repaint()
         print('chose override option {}: {}'.format(self.number, self.label))
+        #audio.Sample.TDFW.play()
         self.device.set_state(State.DISPENSING)
         self.device.selected_prescription.use(self.device.desired_dose)
         self.device.dispense(self.device.desired_dose)

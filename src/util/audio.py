@@ -6,7 +6,9 @@ import pygame
 import util.resources as resources
 
 class Sample(Enum):
-    DISPENSE = 'chime.wav'
+    READY = 'chime.wav'
+    CLICK = 'click.wav'
+    TDFW = 'tdfw_short.wav'
 
     def __init__(self, _):
         self.sound = None
@@ -29,7 +31,7 @@ def set_volume(volume):
 def main():
     pygame.init()
     while True:
-        if Sample.DISPENSE.volume > 0.4:
+        if Sample.DISPENSE.volume >= 0.4:
             Sample.DISPENSE.volume -= 0.2
         print('playing sample at {}'.format(Sample.DISPENSE.volume))
         Sample.DISPENSE.play()

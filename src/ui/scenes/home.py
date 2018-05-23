@@ -3,6 +3,7 @@ import pygame
 import pygame.gfxdraw
 import ui.common
 import ui.fonts as fonts
+import util.audio as audio
 from ui.colors import Color
 from ui.component import Component
 from states import State
@@ -40,6 +41,8 @@ class DoseInfo(Component):
         pygame.draw.rect(screen, self.border_color, self.bounds(), 1)
         doses = self.prescription.get_available_doses()
         if doses == self.prescription.max_dose:
+            if not self.displaying_ready:
+                audio.Sample.READY.play() # only play when changing from not ready to ready
             self.displaying_ready = True
             pygame.gfxdraw.aacircle(screen, self.dx(95), self.dy(87), 75, self.color)
             pygame.gfxdraw.filled_circle(screen, self.dx(95), self.dy(87), 75, self.color)
