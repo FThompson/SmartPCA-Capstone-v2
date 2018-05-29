@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 import pigpio
 import pygame
@@ -20,6 +19,7 @@ from ui.scenes.override_dose import OverrideOption, OverrideQuestion
 from ui.scenes.pain_question import FaceOption, PainQuestion, PainQuestionLabel
 from ui.scenes.request_dose import DoseOption, DoseQuestion
 from ui.scenes.override_reason import OverrideLabel, OverrideReasonOption
+from ui.scenes.menu import ShutdownOption
 
 PILL_CAPACITY = 90
 SCREEN_SIZE = (480, 320)
@@ -41,7 +41,7 @@ class Device:
         print('Initializing components... ')
         self.backlight = Backlight(self.gpio, BACKLIGHT_PIN)
         self.servo = Servo(self.gpio, SERVO_PIN)
-        self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS, rpm=50)
+        self.stepper = Stepper(self.gpio, 512, *STEPPER_PINS, rpm=10)
         self.dispenser = Dispenser(90, 90, self.servo, self.stepper)
         self.left_prescription = Prescription('Opioids', 3, 1 * 2 * 60 * 1000, True)
         self.right_prescription = Prescription('Tylenol', 2, 4 * 60 * 60 * 1000, False)
@@ -115,7 +115,8 @@ class Device:
                 back_button
             ]),
             State.MENU: Scene([
-                back_button
+                back_button,
+                ShutdownOption(self)
             ]),
             State.SETTINGS: Scene([
                 back_button

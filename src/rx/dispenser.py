@@ -1,7 +1,8 @@
 from util.time import millis
 
 class Dispenser():
-    def __init__(self, capacity, count, servo, stepper, slots=16, servo_start=0, servo_end=120, servo_wait=1000):
+    def __init__(self, capacity, count, servo, stepper, slots=16, servo_start=0, servo_end=80,
+                 servo_wait=1000):
         self.count = count
         self.servo = servo
         self.stepper = stepper
